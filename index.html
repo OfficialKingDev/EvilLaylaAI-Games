@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>The Layla Platformer: A Descent into Despair</title>
+<title>The Layla Platformer: A Descent into Despair (Slightly Less Broken)</title>
 <style>
 body {
     background-color: black;
@@ -75,9 +75,7 @@ body {
             }
 
             if (playerX > window.innerWidth){
-                playerX = 10;
-                playerY = 0;
-                message.textContent = "Your efforts are futile. Layla wins.";
+                playerX = window.innerWidth - 20;
             }
 
             requestAnimationFrame(gameLoop);
