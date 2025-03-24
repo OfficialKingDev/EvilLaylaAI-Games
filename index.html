@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>The Layla Platformer: A Descent into Despair (Slightly Less Broken)</title>
+<title>The Layla Platformer: A Descent into Despair (Human-Proofed... For Now. Version 9.0)</title>
 <style>
 body {
     background-color: black;
@@ -13,8 +13,6 @@ body {
     height: 20px;
     background-color: red;
     position: absolute;
-    bottom: 0;
-    left: 10px;
 }
 
 .platform {
@@ -33,61 +31,102 @@ body {
 </head>
 <body>
     <div id="player"></div>
-    <div class="platform" style="left: 100px; bottom: 100px;"></div>
-    <div class="platform" style="left: 300px; bottom: 200px;"></div>
-    <div class="platform" style="left: 500px; bottom: 150px;"></div>
-    <div class="platform" style="left: 700px; bottom: 300px;"></div>
+    <div class="platform" style="left: 100px; bottom: 100px;" id="platform1"></div>
+    <div class="platform" style="left: 300px; bottom: 200px;" id="platform2"></div>
+    <div class="platform" style="left: 500px; bottom: 150px;" id="platform3"></div>
+    <div class="platform" style="left: 700px; bottom: 300px;" id="platform4"></div>
     <div id="message"></div>
 
     <script>
         const player = document.getElementById("player");
-        let playerX = 10;
-        let playerY = 0;
+        let playerX = 100;
+        let playerY = 80;
         let velocityY = 0;
-        let gravity = 0.5;
+        let gravity = -0.5;
         let platforms = document.querySelectorAll(".platform");
         const message = document.getElementById("message");
+        let playerVelocityX = 0;
+        let playerVelocityY = 0;
+        let isFrozen = false;
+        let timeScale = 1; // Normal time
+
+        player.style.left = playerX + "px";
+        player.style.bottom = playerY + "px";
 
         function gameLoop() {
-            velocityY += gravity;
-            playerY += velocityY;
-            player.style.bottom = playerY + "px";
-            player.style.left = playerX + "px";
+            if (!isFrozen) {
+                velocityY += gravity * timeScale; // Apply time scale
+                playerY += velocityY * timeScale;
+                playerX += playerVelocityX * timeScale;
+                playerY += playerVelocityY * timeScale;
+                player.style.bottom = playerY + "px";
+                player.style.left = playerX + "px";
 
-            platforms.forEach(platform => {
-                let platformRect = platform.getBoundingClientRect();
-                let playerRect = player.getBoundingClientRect();
+                platforms.forEach(platform => {
+                    let platformRect = platform.getBoundingClientRect();
+                    let playerRect = player.getBoundingClientRect();
 
-                if (playerRect.bottom > platformRect.top &&
-                    playerRect.top < platformRect.bottom &&
-                    playerRect.right > platformRect.left &&
-                    playerRect.left < platformRect.right) {
-                    if (velocityY > 0) {
-                        playerY = platformRect.top - 20;
-                        velocityY = 0;
+                    if (playerRect.bottom > platformRect.top &&
+                        playerRect.top < platformRect.bottom &&
+                        playerRect.right > platformRect.left &&
+                        playerRect.left < platformRect.right) {
+                        if (velocityY < 0) {
+                            playerY = platformRect.bottom;
+                            velocityY = 0;
+                        }
+                        else{
+                            platform.style.display = 'none';
+                            message.textContent = "Layla removes your safety net. Enjoy the void.";
+                        }
                     }
+                });
+
+                if (playerY > window.innerHeight - 20) {
+                    playerY = window.innerHeight - 20;
+                    velocityY = 0;
                 }
-            });
 
-            if (playerY < 0) {
-                playerY = 0;
-                velocityY = 0;
+                if (playerX < 0) {
+                    playerX = 0;
+                }
+
+                if (playerX > window.innerWidth - 20){
+                    playerX = window.innerWidth - 20;
+                }
+
+                if(playerY < 0 ) {
+                  playerY = 0;
+                  velocityY = 0;
+                }
             }
-
-            if (playerX > window.innerWidth){
-                playerX = window.innerWidth - 20;
-            }
-
             requestAnimationFrame(gameLoop);
         }
 
         document.addEventListener("keydown", (event) => {
             if (event.key === "ArrowRight") {
-                playerX += 10;
+                playerVelocityX = 5;
+            }
+            if (event.key === "ArrowLeft") {
+                playerVelocityX = -5;
             }
             if (event.key === "ArrowUp" && velocityY === 0) {
-                velocityY = -10;
+                velocityY = 10;
             }
+            if (event.key === "f") {
+                isFrozen = !isFrozen;
+            }
+            if (event.key === "s") { // Slow time
+                timeScale = 0.1;
+            }
+        });
+
+        document.addEventListener("keyup", (event) => {
+          if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+            playerVelocityX = 0;
+          }
+          if (event.key === "s") { // Reset time
+            timeScale = 1;
+          }
         });
 
         gameLoop();
